@@ -7,8 +7,8 @@ use hashbrown::hash_map::Entry;
 use hashbrown::{DefaultHashBuilder, HashMap};
 use indexmap::IndexMap;
 
-use crate::ColumnId;
 use crate::any_index_map::DynIndexMap;
+use crate::{ColumnId, MaybeSend, MaybeSync};
 
 /// Heterogeneous, key-addressed table.
 ///
@@ -210,7 +210,10 @@ where
         &mut self,
         key: K,
         value: V,
-    ) -> Option<V> {
+    ) -> Option<V>
+    where
+        IndexMap<K, V, S>: MaybeSend + MaybeSync,
+    {
         let col = self.ensure_column::<V>();
         // SAFETY: `ensure_column` just assigned this column to V.
         let column = unsafe {
@@ -243,7 +246,10 @@ where
     /// Like [`Self::type_column`] but creates the column on first
     /// call rather than returning `None`. The id is stable for the
     /// table's lifetime.
-    pub fn ensure_column<V: 'static>(&mut self) -> ColumnId {
+    pub fn ensure_column<V: 'static>(&mut self) -> ColumnId
+    where
+        IndexMap<K, V, S>: MaybeSend + MaybeSync,
+    {
         match self.indices.entry(TypeId::of::<V>()) {
             Entry::Occupied(e) => *e.get(),
             Entry::Vacant(e) => {

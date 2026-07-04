@@ -66,6 +66,15 @@ assert_eq!(pool.remove::<f32>(&speed), Some(3.14));
 assert_eq!(pool.get::<f32>(&speed), None);
 ```
 
+## Features
+
+- `send`: require every stored value type to be `Send`. This makes the
+  dyn columns, and the `TypeTable` and `TypePool` stores that hold
+  them, `Send` too, so they can move across threads. Off by default.
+- `sync`: likewise require every stored value type to be `Sync`, making
+  the dyn columns and their stores `Sync` too, so they can be shared
+  across threads. Off by default.
+
 ## Join the community!
 
 You can join us on the [Voxell discord server](https://discord.gg/Mhnyp6VYEQ).

@@ -4,13 +4,15 @@ use core::hash::{BuildHasher, Hash};
 
 use indexmap::IndexMap;
 
+use crate::{MaybeSend, MaybeSync};
+
 pub(crate) type DynIndexMap<K, S> = Box<dyn AnyIndexMap<K, S>>;
 
 trait Seal {}
 impl<K, V: 'static, S> Seal for IndexMap<K, V, S> {}
 
 #[expect(private_bounds)]
-pub trait AnyIndexMap<K, S>: Seal {
+pub trait AnyIndexMap<K, S>: Seal + MaybeSend + MaybeSync {
     /// Returns the [`TypeId`] of the stored value type.
     fn value_type_id(&self) -> TypeId;
 
@@ -31,6 +33,7 @@ where
     K: Eq + Hash + 'static,
     V: 'static,
     S: BuildHasher,
+    Self: MaybeSend + MaybeSync,
 {
     fn value_type_id(&self) -> TypeId {
         TypeId::of::<V>()

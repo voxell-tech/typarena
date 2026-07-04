@@ -6,8 +6,8 @@ use hashbrown::HashMap;
 use hashbrown::hash_map::Entry;
 use sparse_map::{Key, SparseMap};
 
-use crate::ColumnId;
 use crate::any_sparse_map::DynSparseMap;
+use crate::{ColumnId, MaybeSend, MaybeSync};
 
 /// Handle returned by [`TypePool::insert`].
 ///
@@ -61,7 +61,10 @@ impl TypePool {
         }
     }
 
-    pub fn ensure_column<T: 'static>(&mut self) -> ColumnId {
+    pub fn ensure_column<T: 'static>(&mut self) -> ColumnId
+    where
+        SparseMap<T>: MaybeSend + MaybeSync,
+    {
         match self.column_ids.entry(TypeId::of::<T>()) {
             Entry::Occupied(e) => *e.get(),
             Entry::Vacant(e) => {
@@ -81,7 +84,10 @@ impl TypePool {
     }
 
     /// Inserts `value` and returns a [`PoolKey`] identifying it.
-    pub fn insert<T: 'static>(&mut self, value: T) -> PoolKey {
+    pub fn insert<T: 'static>(&mut self, value: T) -> PoolKey
+    where
+        SparseMap<T>: MaybeSend + MaybeSync,
+    {
         self.insert_with_key(
             #[inline(always)]
             |_| value,
@@ -93,7 +99,10 @@ impl TypePool {
     pub fn insert_with_key<T: 'static>(
         &mut self,
         create: impl FnOnce(PoolKey) -> T,
-    ) -> PoolKey {
+    ) -> PoolKey
+    where
+        SparseMap<T>: MaybeSend + MaybeSync,
+    {
         let col = self.ensure_column::<T>();
         // SAFETY: `col` was just assigned for T by ensure_column.
         let column = unsafe {
