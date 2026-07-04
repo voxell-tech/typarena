@@ -3,13 +3,15 @@ use core::any::TypeId;
 
 use sparse_map::{Key, SparseMap};
 
+use crate::{MaybeSend, MaybeSync};
+
 pub(crate) type DynSparseMap = Box<dyn AnySparseMap>;
 
 trait Seal {}
 impl<T: 'static> Seal for SparseMap<T> {}
 
 #[expect(private_bounds)]
-pub trait AnySparseMap: Seal {
+pub trait AnySparseMap: Seal + MaybeSend + MaybeSync {
     /// Returns the [`TypeId`] of the stored value type.
     fn value_type_id(&self) -> TypeId;
 
@@ -22,7 +24,10 @@ pub trait AnySparseMap: Seal {
     fn dyn_contains(&self, key: &Key) -> bool;
 }
 
-impl<T: 'static> AnySparseMap for SparseMap<T> {
+impl<T: 'static> AnySparseMap for SparseMap<T>
+where
+    Self: MaybeSend + MaybeSync,
+{
     fn value_type_id(&self) -> TypeId {
         TypeId::of::<T>()
     }

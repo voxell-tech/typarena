@@ -8,6 +8,15 @@ edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/voxell-tech/typarena"
 
+[features]
+default = []
+# Require the stored value types to be `Send`, making the dyn columns
+# and the stores that hold them `Send` too.
+send = []
+# Require the stored value types to be `Sync`, making the dyn columns
+# and the stores that hold them `Sync` too.
+sync = []
+
 [dependencies]
 hashbrown = "0.16.1"
 sparse_map = "0.3.0"
